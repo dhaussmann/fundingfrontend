@@ -62,24 +62,37 @@ export function useTop20(
 
   useEffect(() => {
     const fetchTop20 = async () => {
-      // 30d and custom are too expensive - too many API calls for all symbols
-      if (timeRange === '30d' || timeRange === 'custom') {
-        console.warn('Top20 list disabled for 30d/custom time range due to API performance');
-        setTop20([]);
-        return;
-      }
-
       try {
-        const hours = timeRange === '24h' ? 24 : 168; // Only 24h or 7d
+        // Calculate date range based on timeRange
+        const endDate = new Date();
+        const startDate = new Date();
+
+        if (timeRange === '24h') {
+          startDate.setHours(startDate.getHours() - 24);
+        } else if (timeRange === '7d') {
+          startDate.setDate(startDate.getDate() - 7);
+        } else if (timeRange === '30d') {
+          startDate.setDate(startDate.getDate() - 30);
+        } else {
+          // custom not supported for Top20
+          console.warn('Top20 list does not support custom time range');
+          setTop20([]);
+          return;
+        }
+
+        // Format dates as YYYY-MM-DD
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
 
         // Get unique symbols
         const symbols = Array.from(new Set(latestRates.map(r => r.symbol)));
 
-        // Fetch historical data for all symbols
+        // Fetch historical data for all symbols using date range
+        // This returns ALL exchanges in a single call per symbol!
         const historicalData = await Promise.all(
           symbols.map(async (symbol) => {
             try {
-              const data = await api.history(symbol, hours);
+              const data = await api.history(symbol, { startDate: startDateStr, endDate: endDateStr });
               return { symbol, data: data.data };
             } catch {
               return { symbol, data: [] };
@@ -87,7 +100,7 @@ export function useTop20(
           })
         );
 
-        // Calculate average funding rates
+        // Calculate average funding rates per symbol per exchange
         const averages = historicalData
           .map(({ symbol, data }) => {
             if (data.length === 0) return null;
