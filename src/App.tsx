@@ -17,15 +17,16 @@ function App() {
   const { latestRates, loading, error } = useFundingData();
   const exchangeStats = useExchangeStats(latestRates);
 
-  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
+  const [chartTimeRange, setChartTimeRange] = useState<TimeRange>('24h');
+  const [top20TimeRange, setTop20TimeRange] = useState<TimeRange>('24h');
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
 
-  const top20 = useTop20(latestRates, timeRange);
+  const top20 = useTop20(latestRates, top20TimeRange);
   const { data: chartData, loading: chartLoading } = useHistoricalChart(
     selectedSymbols,
     selectedExchanges,
-    timeRange
+    chartTimeRange
   );
 
   if (loading) {
@@ -88,10 +89,10 @@ function App() {
             <FilterControls
               selectedExchanges={selectedExchanges}
               selectedSymbols={selectedSymbols}
-              timeRange={timeRange}
+              timeRange={chartTimeRange}
               onExchangesChange={setSelectedExchanges}
               onSymbolsChange={setSelectedSymbols}
-              onTimeRangeChange={setTimeRange}
+              onTimeRangeChange={setChartTimeRange}
             />
           </div>
 
@@ -99,8 +100,8 @@ function App() {
           <div className="lg:col-span-2">
             <Top20List
               top20={top20}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
+              timeRange={top20TimeRange}
+              onTimeRangeChange={setTop20TimeRange}
             />
           </div>
         </div>
@@ -116,9 +117,6 @@ function App() {
         <div className="container mx-auto px-4 py-6 text-center text-muted-foreground text-sm">
           <p>
             Funding Rate Collector Dashboard © {new Date().getFullYear()}
-          </p>
-          <p className="mt-1">
-            Daten werden automatisch alle 60 Sekunden aktualisiert
           </p>
         </div>
       </footer>
