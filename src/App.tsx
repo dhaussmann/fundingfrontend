@@ -19,7 +19,8 @@ function App() {
 
   const [chartTimeRange, setChartTimeRange] = useState<TimeRange>('24h');
   const [top20TimeRange, setTop20TimeRange] = useState<TimeRange>('24h');
-  const [customHours, setCustomHours] = useState<number>(48);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
 
@@ -28,13 +29,18 @@ function App() {
     selectedSymbols,
     selectedExchanges,
     chartTimeRange,
-    chartTimeRange === 'custom' ? customHours : undefined
+    chartTimeRange === 'custom' ? { startDate, endDate } : undefined
   );
 
-  const handleTokenClick = (symbol: string) => {
+  const handleTokenClick = (symbol: string, exchange: string) => {
     // Add token to selectedSymbols if not already selected
     if (!selectedSymbols.includes(symbol)) {
       setSelectedSymbols([...selectedSymbols, symbol]);
+    }
+
+    // Add exchange to selectedExchanges if not already selected
+    if (!selectedExchanges.includes(exchange)) {
+      setSelectedExchanges([...selectedExchanges, exchange]);
     }
 
     // Scroll to chart
@@ -107,11 +113,13 @@ function App() {
               selectedExchanges={selectedExchanges}
               selectedSymbols={selectedSymbols}
               timeRange={chartTimeRange}
-              customHours={customHours}
+              startDate={startDate}
+              endDate={endDate}
               onExchangesChange={setSelectedExchanges}
               onSymbolsChange={setSelectedSymbols}
               onTimeRangeChange={setChartTimeRange}
-              onCustomHoursChange={setCustomHours}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
             />
           </div>
 

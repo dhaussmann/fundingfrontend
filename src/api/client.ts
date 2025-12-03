@@ -16,7 +16,20 @@ export const api = {
     fetchAPI(`/compare?symbol=${symbol}`),
 
   // Get historical funding rates
-  history: async (symbol: string, hours: number): Promise<HistoryResponse> => {
+  history: async (
+    symbol: string,
+    hoursOrOptions: number | { startDate: string; endDate: string }
+  ): Promise<HistoryResponse> => {
+    let url: string;
+
+    if (typeof hoursOrOptions === 'number') {
+      // Legacy: use hours parameter
+      url = `/history?symbol=${symbol}&hours=${hoursOrOptions}`;
+    } else {
+      // New: use date range
+      url = `/history?symbol=${symbol}&startDate=${hoursOrOptions.startDate}&endDate=${hoursOrOptions.endDate}`;
+    }
+
     const response = await fetchAPI<{
       symbol: string;
       results: Array<{
@@ -26,7 +39,7 @@ export const api = {
         annualized_rate: number;
         collected_at: number;
       }>;
-    }>(`/history?symbol=${symbol}&hours=${hours}`);
+    }>(url);
 
     // Transform API response to match our internal types
     return {

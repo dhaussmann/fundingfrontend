@@ -133,7 +133,7 @@ export function useHistoricalChart(
   symbols: string[],
   exchanges: string[],
   timeRange: TimeRange,
-  customHours?: number
+  dateRange?: { startDate: string; endDate: string }
 ) {
   const [data, setData] = useState<HistoricalDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
@@ -147,16 +147,23 @@ export function useHistoricalChart(
 
       try {
         setLoading(true);
-        const hours = timeRange === 'custom' && customHours
-          ? customHours
-          : timeRange === '24h' ? 24
-          : timeRange === '7d' ? 168
-          : 720;
+
+        // Determine parameter to pass to API
+        let apiParam: number | { startDate: string; endDate: string };
+
+        if (timeRange === 'custom' && dateRange && dateRange.startDate && dateRange.endDate) {
+          // Use date range for custom
+          apiParam = dateRange;
+        } else {
+          // Use hours for predefined ranges
+          const hours = timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 720;
+          apiParam = hours;
+        }
 
         const allData = await Promise.all(
           symbols.map(async (symbol) => {
             try {
-              const response = await api.history(symbol, hours);
+              const response = await api.history(symbol, apiParam);
               return response.data.filter((point) =>
                 exchanges.includes(point.exchange)
               );
@@ -175,7 +182,7 @@ export function useHistoricalChart(
     };
 
     fetchData();
-  }, [symbols, exchanges, timeRange, customHours]);
+  }, [symbols, exchanges, timeRange, dateRange?.startDate, dateRange?.endDate]);
 
   return { data, loading };
 }

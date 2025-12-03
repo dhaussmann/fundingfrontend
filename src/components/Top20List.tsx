@@ -8,7 +8,7 @@ interface Top20ListProps {
   top20: Top20Item[];
   timeRange: TimeRange;
   onTimeRangeChange: (range: TimeRange) => void;
-  onTokenClick?: (symbol: string) => void;
+  onTokenClick?: (symbol: string, exchange: string) => void;
 }
 
 export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }: Top20ListProps) {
@@ -43,12 +43,12 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.02 }}
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                onClick={() => onTokenClick?.(item.symbol)}
+                onClick={() => onTokenClick?.(item.symbol, item.exchange)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
-                    onTokenClick?.(item.symbol);
+                    onTokenClick?.(item.symbol, item.exchange);
                   }
                 }}
               >
