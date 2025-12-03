@@ -2,6 +2,22 @@
 
 Ein modernes React-Dashboard zur Visualisierung von Funding Rates über mehrere Kryptobörsen.
 
+## 🚀 Quick Start
+
+**Projekt von GitHub laden und zu Cloudflare Workers deployen:**
+
+➡️ **[Siehe QUICK_START.md](QUICK_START.md)** für eine Schritt-für-Schritt Anleitung
+
+```bash
+# Kurz-Version:
+git clone https://github.com/dhaussmann/fundingfrontend.git
+cd fundingfrontend
+npm install
+npm install -g wrangler
+wrangler login
+npm run deploy
+```
+
 ## Features
 
 - 📊 **Echtzeit-Daten**: Automatische Aktualisierung alle 60 Sekunden
@@ -61,9 +77,20 @@ Für lokale Entwicklung mit einem lokalen Backend kannst du den Vite-Proxy nutze
 
 ## Deployment
 
-### Cloudflare Workers (Empfohlen)
+### Option 1: Automatisches Deployment mit GitHub Actions (Empfohlen)
 
-Dieses Projekt nutzt **Cloudflare Workers Static Assets** für das Deployment.
+Bei jedem Push wird automatisch deployed:
+- **Production**: Push zu `main` oder `master` Branch
+- **Preview**: Push zu Feature Branches oder Pull Requests
+
+**Setup** (einmalig):
+1. Erstelle Cloudflare API Token (siehe [.github/SETUP_CI.md](.github/SETUP_CI.md))
+2. Füge GitHub Secrets hinzu: `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID`
+3. Push Code → Deployment läuft automatisch! 🚀
+
+Details: [.github/SETUP_CI.md](.github/SETUP_CI.md)
+
+### Option 2: Manuelles Deployment mit Wrangler
 
 ```bash
 # Wrangler CLI installieren (einmalig)
@@ -78,7 +105,7 @@ npm run deploy
 
 Siehe [CLOUDFLARE_WORKERS_DEPLOYMENT.md](CLOUDFLARE_WORKERS_DEPLOYMENT.md) für detaillierte Anweisungen.
 
-### Andere Plattformen (Vercel, Netlify, etc.)
+### Option 3: Andere Plattformen (Vercel, Netlify, etc.)
 
 ```bash
 npm run build
