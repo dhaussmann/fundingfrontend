@@ -1,0 +1,28 @@
+name = "funding-rate-dashboard"
+compatibility_date = "2025-01-01"
+
+# Static Assets Configuration
+# Cloudflare Workers Static Assets (GA 2025)
+# See: https://developers.cloudflare.com/workers/static-assets/
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# SPA Routing - returns index.html for all non-matching routes
+# This is essential for React Router and other client-side routing
+not_found_handling = "single-page-application"
+
+# HTML Rewriting (optional) - uncomment if needed
+# html_handling = "auto-trailing-slash"
+
+# Browser Cache TTL (optional)
+# browser_TTL = 3600
+
+# Environment-specific configurations
+[env.production]
+name = "funding-rate-dashboard"
+# vars = { ENVIRONMENT = "production" }
+
+[env.preview]
+name = "funding-rate-dashboard-preview"
+# vars = { ENVIRONMENT = "preview" }

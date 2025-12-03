@@ -42,38 +42,49 @@ npm run preview
 
 ## Konfiguration
 
-Erstellen Sie eine `.env` Datei basierend auf `.env.example`:
+Die API URL ist bereits konfiguriert auf:
+```
+https://funding-rate-collector.cloudflareone-demo-account.workers.dev
+```
 
+Um eine andere API URL zu verwenden, setze die Environment Variable:
 ```env
 VITE_API_URL=https://your-worker.workers.dev
 ```
-
-Wenn keine `VITE_API_URL` gesetzt ist, wird automatisch `/api` als Proxy verwendet.
 
 ## Development
 
 Der Development Server läuft standardmäßig auf `http://localhost:3000`.
 
-API-Anfragen werden automatisch an die konfigurierte `VITE_API_URL` weitergeleitet, oder über den Vite-Proxy an `http://localhost:8787` (lokaler Cloudflare Worker).
+API-Anfragen gehen an `https://funding-rate-collector.cloudflareone-demo-account.workers.dev`.
+Für lokale Entwicklung mit einem lokalen Backend kannst du den Vite-Proxy nutzen (siehe `vite.config.ts`).
 
 ## Deployment
 
-### Statisches Hosting (Vercel, Netlify, etc.)
+### Cloudflare Workers (Empfohlen)
+
+Dieses Projekt nutzt **Cloudflare Workers Static Assets** für das Deployment.
+
+```bash
+# Wrangler CLI installieren (einmalig)
+npm install -g wrangler
+
+# Bei Cloudflare anmelden
+wrangler login
+
+# Deployen
+npm run deploy
+```
+
+Siehe [CLOUDFLARE_WORKERS_DEPLOYMENT.md](CLOUDFLARE_WORKERS_DEPLOYMENT.md) für detaillierte Anweisungen.
+
+### Andere Plattformen (Vercel, Netlify, etc.)
 
 ```bash
 npm run build
 ```
 
 Die Build-Artefakte werden im `dist/` Verzeichnis erstellt.
-
-### Cloudflare Pages
-
-Das Projekt kann direkt auf Cloudflare Pages deployed werden:
-
-1. Repository mit GitHub verbinden
-2. Build Command: `npm run build`
-3. Build Output Directory: `dist`
-4. Environment Variable setzen: `VITE_API_URL`
 
 ## API Endpoints
 

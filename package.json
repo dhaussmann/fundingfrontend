@@ -8,8 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name=funding-rate-dashboard",
-    "pages:dev": "wrangler pages dev dist"
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:preview": "npm run build && wrangler deploy --env preview",
+    "cf:dev": "wrangler dev"
   },
   "dependencies": {
     "react": "^18.2.0",
