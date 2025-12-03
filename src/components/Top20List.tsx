@@ -25,7 +25,12 @@ export function Top20List({ top20, timeRange, onTimeRangeChange }: Top20ListProp
       </CardHeader>
       <CardContent>
         <div className="space-y-2 max-h-[600px] overflow-y-auto">
-          {top20.length === 0 ? (
+          {timeRange === '30d' ? (
+            <div className="text-center text-muted-foreground py-8">
+              <p className="font-medium">30-Tage Ansicht nicht verfügbar</p>
+              <p className="text-sm mt-2">Bitte wähle 24h oder 7d für die Top 20 Liste</p>
+            </div>
+          ) : top20.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               Lade Daten...
             </div>
