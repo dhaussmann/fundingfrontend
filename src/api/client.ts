@@ -16,8 +16,30 @@ export const api = {
     fetchAPI(`/compare?symbol=${symbol}`),
 
   // Get historical funding rates
-  history: (symbol: string, hours: number): Promise<HistoryResponse> =>
-    fetchAPI(`/history?symbol=${symbol}&hours=${hours}`),
+  history: async (symbol: string, hours: number): Promise<HistoryResponse> => {
+    const response = await fetchAPI<{
+      symbol: string;
+      results: Array<{
+        exchange: string;
+        symbol: string;
+        funding_rate_percent: number;
+        annualized_rate: number;
+        collected_at: number;
+      }>;
+    }>(`/history?symbol=${symbol}&hours=${hours}`);
+
+    // Transform API response to match our internal types
+    return {
+      symbol: response.symbol,
+      data: response.results.map(item => ({
+        timestamp: item.collected_at,
+        funding_rate_percent: item.funding_rate_percent,
+        annualized_rate: item.annualized_rate,
+        exchange: item.exchange,
+        symbol: item.symbol,
+      }))
+    };
+  },
 
   // Get latest rates with optional filters
   latest: async (exchange?: string, symbol?: string): Promise<{ rates: FundingRate[] }> => {
