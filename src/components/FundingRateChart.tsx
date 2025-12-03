@@ -1,5 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   LineChart,
   Line,
@@ -14,6 +16,7 @@ import { HistoricalDataPoint } from '@/types';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { TrendingUp } from 'lucide-react';
+import { calculateMovingAverage } from '@/utils/movingAverage';
 
 interface FundingRateChartProps {
   data: HistoricalDataPoint[];
@@ -31,7 +34,16 @@ const COLORS = [
   '#ec4899', // pink
 ];
 
+const MA_WINDOWS = [
+  { label: '1h', value: 60 * 60 * 1000 },
+  { label: '6h', value: 6 * 60 * 60 * 1000 },
+  { label: '24h', value: 24 * 60 * 60 * 1000 },
+  { label: '7d', value: 7 * 24 * 60 * 60 * 1000 },
+];
+
 export function FundingRateChart({ data, loading }: FundingRateChartProps) {
+  const [showMA, setShowMA] = useState(false);
+  const [maWindow, setMaWindow] = useState(MA_WINDOWS[2].value); // Default: 24h
   const chartData = useMemo(() => {
     if (data.length === 0) return [];
 
@@ -46,8 +58,45 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
       return acc;
     }, {} as Record<number, any>);
 
-    return Object.values(grouped).sort((a, b) => a.timestamp - b.timestamp);
-  }, [data]);
+    const sortedData = Object.values(grouped).sort((a, b) => a.timestamp - b.timestamp);
+
+    // Calculate moving averages if enabled
+    if (showMA && sortedData.length > 0) {
+      // Get all series keys
+      const seriesKeys = new Set<string>();
+      data.forEach((point) => {
+        seriesKeys.add(`${point.exchange}_${point.symbol}`);
+      });
+
+      // Calculate MA for each series
+      seriesKeys.forEach((seriesKey) => {
+        // Extract timestamps and values for this series
+        const seriesData = sortedData
+          .map((d) => ({
+            timestamp: d.timestamp,
+            value: d[seriesKey] ?? null,
+          }))
+          .filter((d) => d.value !== null);
+
+        if (seriesData.length > 0) {
+          const timestamps = seriesData.map((d) => d.timestamp);
+          const values = seriesData.map((d) => d.value);
+          const maValues = calculateMovingAverage(timestamps, values, maWindow);
+
+          // Add MA values back to chartData
+          let maIndex = 0;
+          sortedData.forEach((d) => {
+            if (d[seriesKey] !== undefined) {
+              d[`${seriesKey}_MA`] = maValues[maIndex];
+              maIndex++;
+            }
+          });
+        }
+      });
+    }
+
+    return sortedData;
+  }, [data, showMA, maWindow]);
 
   const series = useMemo(() => {
     if (data.length === 0) return [];
@@ -69,10 +118,41 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Funding Rate Verlauf
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Funding Rate Verlauf
+          </CardTitle>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="show-ma"
+                checked={showMA}
+                onCheckedChange={(checked) => setShowMA(checked as boolean)}
+              />
+              <label
+                htmlFor="show-ma"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                Moving Average
+              </label>
+            </div>
+            {showMA && (
+              <div className="flex gap-2">
+                {MA_WINDOWS.map((window) => (
+                  <Button
+                    key={window.value}
+                    variant={maWindow === window.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setMaWindow(window.value)}
+                  >
+                    {window.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -116,6 +196,12 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
               <Legend
                 wrapperStyle={{ fontSize: '12px' }}
                 formatter={(value) => {
+                  if (value.endsWith('_MA')) {
+                    const baseKey = value.replace('_MA', '');
+                    const [exchange, symbol] = baseKey.split('_');
+                    const windowLabel = MA_WINDOWS.find(w => w.value === maWindow)?.label || '';
+                    return `${symbol} (${exchange}) MA ${windowLabel}`;
+                  }
                   const [exchange, symbol] = value.split('_');
                   return `${symbol} (${exchange})`;
                 }}
@@ -129,6 +215,19 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
                   strokeWidth={2}
                   dot={false}
                   name={key}
+                  connectNulls
+                />
+              ))}
+              {showMA && series.map((key, index) => (
+                <Line
+                  key={`${key}_MA`}
+                  type="monotone"
+                  dataKey={`${key}_MA`}
+                  stroke={COLORS[index % COLORS.length]}
+                  strokeWidth={3}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  name={`${key}_MA`}
                   connectNulls
                 />
               ))}
