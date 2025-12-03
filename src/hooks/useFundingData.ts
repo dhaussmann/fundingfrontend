@@ -84,6 +84,8 @@ export function useTop20(
         const startDateStr = startDate.toISOString().split('T')[0];
         const endDateStr = endDate.toISOString().split('T')[0];
 
+        console.log(`[Top20] TimeRange: ${timeRange}, StartDate: ${startDateStr}, EndDate: ${endDateStr}`);
+
         // Get unique symbols
         const symbols = Array.from(new Set(latestRates.map(r => r.symbol)));
 
@@ -93,8 +95,10 @@ export function useTop20(
           symbols.map(async (symbol) => {
             try {
               const data = await api.history(symbol, { startDate: startDateStr, endDate: endDateStr });
+              console.log(`[Top20] ${symbol}: Received ${data.data.length} data points`);
               return { symbol, data: data.data };
-            } catch {
+            } catch (error) {
+              console.error(`[Top20] Error fetching ${symbol}:`, error);
               return { symbol, data: [] };
             }
           })
@@ -115,6 +119,7 @@ export function useTop20(
             return Object.entries(byExchange).map(([exchange, points]) => {
               const avgRate = points.reduce((sum, p) => sum + p.funding_rate_percent, 0) / points.length;
               const avgAnnualized = points.reduce((sum, p) => sum + p.annualized_rate, 0) / points.length;
+              console.log(`[Top20] ${symbol}-${exchange}: ${points.length} points, avg rate: ${avgRate.toFixed(6)}%`);
               return {
                 symbol,
                 exchange,
@@ -128,6 +133,7 @@ export function useTop20(
           .sort((a, b) => b.avg_funding_rate_percent - a.avg_funding_rate_percent)
           .slice(0, 20);
 
+        console.log(`[Top20] Final Top 20:`, averages.map(a => `${a.symbol}-${a.exchange}: ${a.avg_funding_rate_percent.toFixed(4)}%`));
         setTop20(averages);
       } catch (err) {
         console.error('Failed to fetch top 20:', err);
