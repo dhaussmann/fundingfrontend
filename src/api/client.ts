@@ -20,12 +20,13 @@ export const api = {
     fetchAPI(`/history?symbol=${symbol}&hours=${hours}`),
 
   // Get latest rates with optional filters
-  latest: (exchange?: string, symbol?: string): Promise<{ rates: FundingRate[] }> => {
+  latest: async (exchange?: string, symbol?: string): Promise<{ rates: FundingRate[] }> => {
     const params = new URLSearchParams();
     if (exchange) params.append('exchange', exchange);
     if (symbol) params.append('symbol', symbol);
     const query = params.toString() ? `?${params}` : '';
-    return fetchAPI(`/rates${query}`);
+    const rates = await fetchAPI<FundingRate[]>(`/rates${query}`);
+    return { rates }; // Wrap array in object
   },
 
   // Get statistics
@@ -33,15 +34,15 @@ export const api = {
 
   // Get all available symbols across all exchanges
   getSymbols: async (): Promise<string[]> => {
-    const data = await fetchAPI<{ rates: FundingRate[] }>('/rates');
-    const symbols = new Set(data.rates.map((r) => r.symbol));
+    const rates = await fetchAPI<FundingRate[]>('/rates');
+    const symbols = new Set(rates.map((r) => r.symbol));
     return Array.from(symbols).sort();
   },
 
   // Get all available exchanges
   getExchanges: async (): Promise<string[]> => {
-    const data = await fetchAPI<{ rates: FundingRate[] }>('/rates');
-    const exchanges = new Set(data.rates.map((r) => r.exchange));
+    const rates = await fetchAPI<FundingRate[]>('/rates');
+    const exchanges = new Set(rates.map((r) => r.exchange));
     return Array.from(exchanges).sort();
   },
 };
