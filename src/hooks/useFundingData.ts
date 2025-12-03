@@ -62,9 +62,9 @@ export function useTop20(
 
   useEffect(() => {
     const fetchTop20 = async () => {
-      // 30d is too expensive - too many API calls for all symbols
-      if (timeRange === '30d') {
-        console.warn('Top20 list disabled for 30d time range due to API performance');
+      // 30d and custom are too expensive - too many API calls for all symbols
+      if (timeRange === '30d' || timeRange === 'custom') {
+        console.warn('Top20 list disabled for 30d/custom time range due to API performance');
         setTop20([]);
         return;
       }
@@ -132,7 +132,8 @@ export function useTop20(
 export function useHistoricalChart(
   symbols: string[],
   exchanges: string[],
-  timeRange: TimeRange
+  timeRange: TimeRange,
+  customHours?: number
 ) {
   const [data, setData] = useState<HistoricalDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
@@ -146,7 +147,11 @@ export function useHistoricalChart(
 
       try {
         setLoading(true);
-        const hours = timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 720;
+        const hours = timeRange === 'custom' && customHours
+          ? customHours
+          : timeRange === '24h' ? 24
+          : timeRange === '7d' ? 168
+          : 720;
 
         const allData = await Promise.all(
           symbols.map(async (symbol) => {
@@ -170,7 +175,7 @@ export function useHistoricalChart(
     };
 
     fetchData();
-  }, [symbols, exchanges, timeRange]);
+  }, [symbols, exchanges, timeRange, customHours]);
 
   return { data, loading };
 }

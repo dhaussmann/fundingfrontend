@@ -19,6 +19,7 @@ function App() {
 
   const [chartTimeRange, setChartTimeRange] = useState<TimeRange>('24h');
   const [top20TimeRange, setTop20TimeRange] = useState<TimeRange>('24h');
+  const [customHours, setCustomHours] = useState<number>(48);
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
 
@@ -26,8 +27,24 @@ function App() {
   const { data: chartData, loading: chartLoading } = useHistoricalChart(
     selectedSymbols,
     selectedExchanges,
-    chartTimeRange
+    chartTimeRange,
+    chartTimeRange === 'custom' ? customHours : undefined
   );
+
+  const handleTokenClick = (symbol: string) => {
+    // Add token to selectedSymbols if not already selected
+    if (!selectedSymbols.includes(symbol)) {
+      setSelectedSymbols([...selectedSymbols, symbol]);
+    }
+
+    // Scroll to chart
+    setTimeout(() => {
+      const chartElement = document.getElementById('funding-chart');
+      if (chartElement) {
+        chartElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   if (loading) {
     return (
@@ -90,9 +107,11 @@ function App() {
               selectedExchanges={selectedExchanges}
               selectedSymbols={selectedSymbols}
               timeRange={chartTimeRange}
+              customHours={customHours}
               onExchangesChange={setSelectedExchanges}
               onSymbolsChange={setSelectedSymbols}
               onTimeRangeChange={setChartTimeRange}
+              onCustomHoursChange={setCustomHours}
             />
           </div>
 
@@ -102,12 +121,13 @@ function App() {
               top20={top20}
               timeRange={top20TimeRange}
               onTimeRangeChange={setTop20TimeRange}
+              onTokenClick={handleTokenClick}
             />
           </div>
         </div>
 
         {/* Full Width Chart */}
-        <section>
+        <section id="funding-chart">
           <FundingRateChart data={chartData} loading={chartLoading} />
         </section>
       </main>
