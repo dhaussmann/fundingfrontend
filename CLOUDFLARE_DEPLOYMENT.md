@@ -8,7 +8,7 @@ Dieses Projekt ist für das Deployment auf **Cloudflare Pages** optimiert.
 
 - Cloudflare Account (kostenlos)
 - Git Repository (GitHub, GitLab, oder Bitbucket)
-- Node.js 18+ lokal für Tests
+- Node.js 20+ lokal für Tests
 
 ## Deployment-Methoden
 
@@ -28,13 +28,12 @@ Dieses Projekt ist für das Deployment auf **Cloudflare Pages** optimiert.
    Root directory: (leave empty or /)
    ```
 
-3. **Environment Variables setzen**
-   - Gehe zu **Settings** → **Environment variables**
-   - Füge hinzu:
+3. **Environment Variables setzen (Optional)**
+   - Die API URL ist bereits im Code gesetzt: `https://funding-rate-collector.cloudflareone-demo-account.workers.dev`
+   - Um eine andere API URL zu verwenden, setze die Environment Variable:
      ```
      VITE_API_URL = https://your-backend-api.workers.dev
      ```
-   - Tipp: Setze unterschiedliche Werte für Preview und Production
 
 4. **Deployment starten**
    - Klicke auf **Save and Deploy**
@@ -72,23 +71,24 @@ Dieses Projekt ist für das Deployment auf **Cloudflare Pages** optimiert.
 
 - `public/_redirects` - Routing für Single Page Application
 - `public/_headers` - Security und Cache Headers
-- `wrangler.toml` - Cloudflare Pages Konfiguration
-- `.node-version` - Node.js Version für Build
+- `.node-version` - Node.js 20 für Build-Umgebung
+- `src/api/client.ts` - API URL Konfiguration
 
 ## Environment Variables
 
-### VITE_API_URL
+### VITE_API_URL (Optional)
 
-Die URL deines Backend-APIs. Beispiele:
+Die API URL ist standardmäßig auf `https://funding-rate-collector.cloudflareone-demo-account.workers.dev` gesetzt.
 
-- **Production**: `https://funding-api.your-domain.workers.dev`
-- **Preview/Staging**: `https://funding-api-staging.your-domain.workers.dev`
-- **Development**: Verwendet automatisch `/api` Proxy zu `localhost:8787`
-
-Setzen in Cloudflare Dashboard:
+Um eine andere API URL zu verwenden:
 1. Pages → Dein Projekt → **Settings** → **Environment variables**
 2. Füge `VITE_API_URL` hinzu
-3. Setze unterschiedliche Werte für **Production** und **Preview**
+3. Setze den gewünschten Wert für **Production** und/oder **Preview**
+
+Beispiele:
+- **Production**: `https://funding-api.your-domain.workers.dev`
+- **Preview/Staging**: `https://funding-api-staging.your-domain.workers.dev`
+- **Development**: Der Vite Proxy leitet zu `localhost:8787` weiter (siehe vite.config.ts)
 
 ## Custom Domain (Optional)
 
@@ -122,7 +122,7 @@ wrangler pages dev dist
 
 ### Build schlägt fehl
 
-1. Überprüfe Node.js Version (sollte 18+ sein)
+1. Überprüfe Node.js Version (sollte 20+ sein)
    ```bash
    node --version
    ```

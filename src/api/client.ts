@@ -1,6 +1,6 @@
 import { CompareResponse, HistoryResponse, StatsResponse, FundingRate } from '@/types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://funding-rate-collector.cloudflareone-demo-account.workers.dev';
 
 async function fetchAPI<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${endpoint}`);
