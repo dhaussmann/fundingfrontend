@@ -38,7 +38,10 @@ const MA_WINDOWS = [
   { label: '1h', value: 60 * 60 * 1000 },
   { label: '6h', value: 6 * 60 * 60 * 1000 },
   { label: '24h', value: 24 * 60 * 60 * 1000 },
-  { label: '7d', value: 7 * 24 * 60 * 60 * 1000 },
+  { label: '3D', value: 3 * 24 * 60 * 60 * 1000 },
+  { label: '7D', value: 7 * 24 * 60 * 60 * 1000 },
+  { label: '14D', value: 14 * 24 * 60 * 60 * 1000 },
+  { label: '30D', value: 30 * 24 * 60 * 60 * 1000 },
 ];
 
 export function FundingRateChart({ data, loading }: FundingRateChartProps) {
@@ -115,6 +118,54 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
     return `${value.toFixed(3)}%`;
   };
 
+  // Calculate MA overview for all series and all windows
+  const maOverview = useMemo(() => {
+    if (data.length === 0 || !showMA) return [];
+
+    const overview: Array<{
+      series: string;
+      exchange: string;
+      symbol: string;
+      maValues: Record<string, number | null>;
+    }> = [];
+
+    series.forEach((seriesKey) => {
+      const [exchange, symbol] = seriesKey.split('_');
+
+      // Get all data points for this series, sorted by timestamp
+      const seriesData = data
+        .filter((point) => point.exchange === exchange && point.symbol === symbol)
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      if (seriesData.length === 0) return;
+
+      const timestamps = seriesData.map((d) => d.timestamp);
+      const values = seriesData.map((d) => d.funding_rate_percent);
+
+      const maValues: Record<string, number | null> = {};
+
+      // Calculate MA for entire range (last value of MA with full dataset window)
+      const fullRangeMA = calculateMovingAverage(timestamps, values, timestamps[timestamps.length - 1] - timestamps[0]);
+      maValues['Range'] = fullRangeMA[fullRangeMA.length - 1];
+
+      // Calculate MA for each predefined window
+      MA_WINDOWS.forEach((window) => {
+        const ma = calculateMovingAverage(timestamps, values, window.value);
+        // Take the last (most recent) MA value
+        maValues[window.label] = ma[ma.length - 1];
+      });
+
+      overview.push({
+        series: seriesKey,
+        exchange,
+        symbol,
+        maValues,
+      });
+    });
+
+    return overview;
+  }, [data, series, showMA]);
+
   return (
     <Card>
       <CardHeader>
@@ -138,7 +189,7 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
               </label>
             </div>
             {showMA && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {MA_WINDOWS.map((window) => (
                   <Button
                     key={window.value}
@@ -233,6 +284,70 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
               ))}
             </LineChart>
           </ResponsiveContainer>
+        )}
+
+        {/* MA Overview Table */}
+        {showMA && maOverview.length > 0 && (
+          <div className="mt-6 overflow-x-auto">
+            <div className="text-xs text-muted-foreground text-right mb-2">
+              * MA = Moving Average
+            </div>
+            {maOverview.map((item, idx) => (
+              <div key={item.series} className="mb-4">
+                <div className="text-sm font-semibold mb-2">
+                  {item.symbol} ({item.exchange})
+                </div>
+                <div className="rounded-lg border border-border bg-card overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/50">
+                        <th className="px-4 py-3 text-left font-medium">MA (Range)</th>
+                        <th className="px-4 py-3 text-left font-medium">MA (24h)</th>
+                        <th className="px-4 py-3 text-left font-medium">MA (3D)</th>
+                        <th className="px-4 py-3 text-left font-medium">MA (7D)</th>
+                        <th className="px-4 py-3 text-left font-medium">MA (14D)</th>
+                        <th className="px-4 py-3 text-left font-medium">MA (30D)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="px-4 py-3">
+                          {item.maValues['Range'] !== null && item.maValues['Range'] !== undefined
+                            ? `${item.maValues['Range'].toFixed(4)}%`
+                            : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.maValues['24h'] !== null && item.maValues['24h'] !== undefined
+                            ? `${item.maValues['24h'].toFixed(4)}%`
+                            : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.maValues['3D'] !== null && item.maValues['3D'] !== undefined
+                            ? `${item.maValues['3D'].toFixed(4)}%`
+                            : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.maValues['7D'] !== null && item.maValues['7D'] !== undefined
+                            ? `${item.maValues['7D'].toFixed(4)}%`
+                            : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.maValues['14D'] !== null && item.maValues['14D'] !== undefined
+                            ? `${item.maValues['14D'].toFixed(4)}%`
+                            : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.maValues['30D'] !== null && item.maValues['30D'] !== undefined
+                            ? `${item.maValues['30D'].toFixed(4)}%`
+                            : 'N/A'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
