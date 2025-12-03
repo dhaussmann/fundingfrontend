@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/api/client';
 import { FundingRate, HistoricalDataPoint, ExchangeStats, Top20Item, TimeRange } from '@/types';
-import { subHours, subDays } from 'date-fns';
 
 export function useFundingData() {
   const [latestRates, setLatestRates] = useState<FundingRate[]>([]);
