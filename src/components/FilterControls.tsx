@@ -11,18 +11,22 @@ interface FilterControlsProps {
   selectedExchanges: string[];
   selectedSymbols: string[];
   timeRange: TimeRange;
+  customHours?: number;
   onExchangesChange: (exchanges: string[]) => void;
   onSymbolsChange: (symbols: string[]) => void;
   onTimeRangeChange: (range: TimeRange) => void;
+  onCustomHoursChange?: (hours: number) => void;
 }
 
 export function FilterControls({
   selectedExchanges,
   selectedSymbols,
   timeRange,
+  customHours = 48,
   onExchangesChange,
   onSymbolsChange,
   onTimeRangeChange,
+  onCustomHoursChange,
 }: FilterControlsProps) {
   const [exchanges, setExchanges] = useState<string[]>([]);
   const [symbols, setSymbols] = useState<string[]>([]);
@@ -94,18 +98,37 @@ export function FilterControls({
               {/* Zeitraum */}
               <div>
                 <h3 className="font-semibold mb-3">Zeitraum</h3>
-                <div className="flex gap-2">
-                  {(['24h', '7d', '30d'] as TimeRange[]).map((range) => (
+                <div className="flex gap-2 flex-wrap">
+                  {(['24h', '7d', '30d', 'custom'] as TimeRange[]).map((range) => (
                     <Button
                       key={range}
                       variant={timeRange === range ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => onTimeRangeChange(range)}
                     >
-                      {range}
+                      {range === 'custom' ? 'Custom' : range}
                     </Button>
                   ))}
                 </div>
+                {timeRange === 'custom' && (
+                  <div className="mt-3">
+                    <label className="text-sm text-muted-foreground mb-1 block">
+                      Stunden
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="720"
+                      value={customHours}
+                      onChange={(e) => onCustomHoursChange?.(parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                      placeholder="z.B. 48"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Zwischen 1 und 720 Stunden (30 Tage)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Börsen */}
@@ -133,6 +156,33 @@ export function FilterControls({
               {/* Token */}
               <div>
                 <h3 className="font-semibold mb-3">Token</h3>
+
+                {/* Ausgewählte Token anzeigen */}
+                {selectedSymbols.length > 0 && (
+                  <div className="mb-3 p-3 rounded-md bg-muted/30 border border-border">
+                    <div className="text-xs font-medium text-muted-foreground mb-2">
+                      Ausgewählt ({selectedSymbols.length})
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSymbols.map((symbol) => (
+                        <div
+                          key={symbol}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-sm"
+                        >
+                          <span>{symbol}</span>
+                          <button
+                            onClick={() => toggleSymbol(symbol)}
+                            className="hover:bg-primary/20 rounded-sm p-0.5"
+                            aria-label={`${symbol} entfernen`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <input
                   type="text"
                   placeholder="Token suchen..."

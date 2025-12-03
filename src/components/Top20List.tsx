@@ -8,9 +8,10 @@ interface Top20ListProps {
   top20: Top20Item[];
   timeRange: TimeRange;
   onTimeRangeChange: (range: TimeRange) => void;
+  onTokenClick?: (symbol: string) => void;
 }
 
-export function Top20List({ top20, timeRange, onTimeRangeChange }: Top20ListProps) {
+export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }: Top20ListProps) {
   return (
     <Card>
       <CardHeader>
@@ -25,9 +26,9 @@ export function Top20List({ top20, timeRange, onTimeRangeChange }: Top20ListProp
       </CardHeader>
       <CardContent>
         <div className="space-y-2 max-h-[600px] overflow-y-auto">
-          {timeRange === '30d' ? (
+          {(timeRange === '30d' || timeRange === 'custom') ? (
             <div className="text-center text-muted-foreground py-8">
-              <p className="font-medium">30-Tage Ansicht nicht verfügbar</p>
+              <p className="font-medium">Ansicht nicht verfügbar</p>
               <p className="text-sm mt-2">Bitte wähle 24h oder 7d für die Top 20 Liste</p>
             </div>
           ) : top20.length === 0 ? (
@@ -41,14 +42,22 @@ export function Top20List({ top20, timeRange, onTimeRangeChange }: Top20ListProp
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.02 }}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                onClick={() => onTokenClick?.(item.symbol)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    onTokenClick?.(item.symbol);
+                  }
+                }}
               >
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="font-semibold">{item.symbol}</div>
+                    <div className="font-semibold hover:text-primary transition-colors">{item.symbol}</div>
                     <div className="text-xs text-muted-foreground capitalize">
                       {item.exchange}
                     </div>
