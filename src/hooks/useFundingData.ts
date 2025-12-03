@@ -22,9 +22,6 @@ export function useFundingData() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 60000); // Refresh every minute
-
-    return () => clearInterval(interval);
   }, []);
 
   return { latestRates, loading, error };
@@ -65,8 +62,15 @@ export function useTop20(
 
   useEffect(() => {
     const fetchTop20 = async () => {
+      // 30d is too expensive - too many API calls for all symbols
+      if (timeRange === '30d') {
+        console.warn('Top20 list disabled for 30d time range due to API performance');
+        setTop20([]);
+        return;
+      }
+
       try {
-        const hours = timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 720;
+        const hours = timeRange === '24h' ? 24 : 168; // Only 24h or 7d
 
         // Get unique symbols
         const symbols = Array.from(new Set(latestRates.map(r => r.symbol)));
