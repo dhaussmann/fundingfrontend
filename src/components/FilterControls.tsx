@@ -11,22 +11,26 @@ interface FilterControlsProps {
   selectedExchanges: string[];
   selectedSymbols: string[];
   timeRange: TimeRange;
-  customHours?: number;
+  startDate?: string;
+  endDate?: string;
   onExchangesChange: (exchanges: string[]) => void;
   onSymbolsChange: (symbols: string[]) => void;
   onTimeRangeChange: (range: TimeRange) => void;
-  onCustomHoursChange?: (hours: number) => void;
+  onStartDateChange?: (date: string) => void;
+  onEndDateChange?: (date: string) => void;
 }
 
 export function FilterControls({
   selectedExchanges,
   selectedSymbols,
   timeRange,
-  customHours = 48,
+  startDate,
+  endDate,
   onExchangesChange,
   onSymbolsChange,
   onTimeRangeChange,
-  onCustomHoursChange,
+  onStartDateChange,
+  onEndDateChange,
 }: FilterControlsProps) {
   const [exchanges, setExchanges] = useState<string[]>([]);
   const [symbols, setSymbols] = useState<string[]>([]);
@@ -111,21 +115,31 @@ export function FilterControls({
                   ))}
                 </div>
                 {timeRange === 'custom' && (
-                  <div className="mt-3">
-                    <label className="text-sm text-muted-foreground mb-1 block">
-                      Stunden
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="720"
-                      value={customHours}
-                      onChange={(e) => onCustomHoursChange?.(parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
-                      placeholder="z.B. 48"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Zwischen 1 und 720 Stunden (30 Tage)
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-1 block">
+                        Startdatum
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate || ''}
+                        onChange={(e) => onStartDateChange?.(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-1 block">
+                        Enddatum
+                      </label>
+                      <input
+                        type="date"
+                        value={endDate || ''}
+                        onChange={(e) => onEndDateChange?.(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Format: YYYY-MM-DD
                     </p>
                   </div>
                 )}
