@@ -2,6 +2,22 @@
 
 Ein modernes React-Dashboard zur Visualisierung von Funding Rates über mehrere Kryptobörsen.
 
+## 🚀 Quick Start
+
+**Projekt von GitHub laden und zu Cloudflare Workers deployen:**
+
+➡️ **[Siehe QUICK_START.md](QUICK_START.md)** für eine Schritt-für-Schritt Anleitung
+
+```bash
+# Kurz-Version:
+git clone https://github.com/dhaussmann/fundingfrontend.git
+cd fundingfrontend
+npm install
+npm install -g wrangler
+wrangler login
+npm run deploy
+```
+
 ## Features
 
 - 📊 **Echtzeit-Daten**: Automatische Aktualisierung alle 60 Sekunden
