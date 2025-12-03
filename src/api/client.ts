@@ -25,7 +25,7 @@ export const api = {
     if (exchange) params.append('exchange', exchange);
     if (symbol) params.append('symbol', symbol);
     const query = params.toString() ? `?${params}` : '';
-    return fetchAPI(`/latest${query}`);
+    return fetchAPI(`/rates${query}`);
   },
 
   // Get statistics
@@ -33,14 +33,14 @@ export const api = {
 
   // Get all available symbols across all exchanges
   getSymbols: async (): Promise<string[]> => {
-    const data = await fetchAPI<{ rates: FundingRate[] }>('/latest');
+    const data = await fetchAPI<{ rates: FundingRate[] }>('/rates');
     const symbols = new Set(data.rates.map((r) => r.symbol));
     return Array.from(symbols).sort();
   },
 
   // Get all available exchanges
   getExchanges: async (): Promise<string[]> => {
-    const data = await fetchAPI<{ rates: FundingRate[] }>('/latest');
+    const data = await fetchAPI<{ rates: FundingRate[] }>('/rates');
     const exchanges = new Set(data.rates.map((r) => r.exchange));
     return Array.from(exchanges).sort();
   },
