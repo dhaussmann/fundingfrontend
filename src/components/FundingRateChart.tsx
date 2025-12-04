@@ -292,7 +292,7 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
             <div className="text-xs text-muted-foreground text-right mb-2">
               * MA = Moving Average
             </div>
-            {maOverview.map((item, idx) => (
+            {maOverview.map((item) => (
               <div key={item.series} className="mb-4">
                 <div className="text-sm font-semibold mb-2">
                   {item.symbol} ({item.exchange})
