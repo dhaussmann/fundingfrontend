@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Top20Item, TimeRange } from '@/types';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Top20ListProps {
   top20: Top20Item[];
@@ -12,20 +13,38 @@ interface Top20ListProps {
 }
 
 export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }: Top20ListProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top 20 Funding Rates</CardTitle>
-        <Tabs value={timeRange} onValueChange={(v) => onTimeRangeChange(v as TimeRange)}>
-          <TabsList>
-            <TabsTrigger value="24h">24h</TabsTrigger>
-            <TabsTrigger value="7d">7d</TabsTrigger>
-            <TabsTrigger value="30d">30d</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center justify-between">
+          <CardTitle>Top 20 Funding Rates</CardTitle>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1 hover:bg-muted rounded-md transition-colors"
+            aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+          >
+            {isCollapsed ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronUp className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+        {!isCollapsed && (
+          <Tabs value={timeRange} onValueChange={(v) => onTimeRangeChange(v as TimeRange)}>
+            <TabsList>
+              <TabsTrigger value="24h">24h</TabsTrigger>
+              <TabsTrigger value="7d">7d</TabsTrigger>
+              <TabsTrigger value="30d">30d</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2 max-h-[600px] overflow-y-auto">
+      {!isCollapsed && (
+        <CardContent>
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
           {timeRange === 'custom' ? (
             <div className="text-center text-muted-foreground py-8">
               <p className="font-medium">Custom Ansicht nicht verfügbar</p>
@@ -87,8 +106,9 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
               </motion.div>
             ))
           )}
-        </div>
-      </CardContent>
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 }
