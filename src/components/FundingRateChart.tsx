@@ -286,7 +286,7 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
               />
               {series
                 .filter((key) => visibleSeries[key] !== false)
-                .map((key, index) => {
+                .map((key) => {
                   const originalIndex = series.indexOf(key);
                   return (
                     <Line
@@ -303,7 +303,7 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
                 })}
               {showMA && series
                 .filter((key) => visibleSeries[key] !== false)
-                .map((key, index) => {
+                .map((key) => {
                   const originalIndex = series.indexOf(key);
                   return (
                     <Line
