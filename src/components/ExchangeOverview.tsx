@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExchangeStats } from '@/types';
-import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ExchangeOverviewProps {
@@ -42,21 +42,7 @@ export function ExchangeOverview({ stats }: ExchangeOverviewProps) {
               <p className="text-xs text-muted-foreground">
                 Token verfügbar
               </p>
-              <div className="flex items-center gap-1 mt-2">
-                {stat.avg_funding_rate >= 0 ? (
-                  <TrendingUp className="h-3 w-3 text-green-500" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 text-red-500" />
-                )}
-                <span
-                  className={`text-xs font-medium ${
-                    stat.avg_funding_rate >= 0 ? 'text-green-500' : 'text-red-500'
-                  }`}
-                >
-                  {stat.avg_funding_rate.toFixed(4)}% Ø
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-2">
                 aktualisiert {formatDistanceToNow(stat.latest_update, { addSuffix: true })}
               </p>
             </CardContent>
