@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -47,6 +47,7 @@ const MA_WINDOWS = [
 export function FundingRateChart({ data, loading }: FundingRateChartProps) {
   const [showMA, setShowMA] = useState(false);
   const [maWindow, setMaWindow] = useState(MA_WINDOWS[2].value); // Default: 24h
+  const [visibleSeries, setVisibleSeries] = useState<Record<string, boolean>>({});
   const chartData = useMemo(() => {
     if (data.length === 0) return [];
 
@@ -109,6 +110,23 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
     });
     return Array.from(keys);
   }, [data]);
+
+  // Initialize all series as visible when series change
+  useEffect(() => {
+    const initialVisible: Record<string, boolean> = {};
+    series.forEach((key) => {
+      initialVisible[key] = true;
+    });
+    setVisibleSeries(initialVisible);
+  }, [series]);
+
+  // Toggle series visibility
+  const handleLegendClick = (seriesKey: string) => {
+    setVisibleSeries((prev) => ({
+      ...prev,
+      [seriesKey]: !prev[seriesKey],
+    }));
+  };
 
   const formatXAxis = (timestamp: number) => {
     return format(timestamp, 'MMM dd HH:mm');
@@ -245,43 +263,62 @@ export function FundingRateChart({ data, loading }: FundingRateChartProps) {
                 formatter={(value: number) => [`${value.toFixed(4)}%`, '']}
               />
               <Legend
-                wrapperStyle={{ fontSize: '12px' }}
+                wrapperStyle={{ fontSize: '12px', cursor: 'pointer' }}
+                onClick={(e) => {
+                  if (e.dataKey) {
+                    const baseKey = e.dataKey.toString().replace('_MA', '');
+                    handleLegendClick(baseKey);
+                  }
+                }}
                 formatter={(value) => {
-                  if (value.endsWith('_MA')) {
-                    const baseKey = value.replace('_MA', '');
+                  const baseKey = value.toString().replace('_MA', '');
+                  const isVisible = visibleSeries[baseKey] !== false;
+                  const style = isVisible ? {} : { opacity: 0.4, textDecoration: 'line-through' };
+
+                  if (value.toString().endsWith('_MA')) {
                     const [exchange, symbol] = baseKey.split('_');
                     const windowLabel = MA_WINDOWS.find(w => w.value === maWindow)?.label || '';
-                    return `${symbol} (${exchange}) MA ${windowLabel}`;
+                    return <span style={style}>{`${symbol} (${exchange}) MA ${windowLabel}`}</span>;
                   }
-                  const [exchange, symbol] = value.split('_');
-                  return `${symbol} (${exchange})`;
+                  const [exchange, symbol] = baseKey.split('_');
+                  return <span style={style}>{`${symbol} (${exchange})`}</span>;
                 }}
               />
-              {series.map((key, index) => (
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={COLORS[index % COLORS.length]}
-                  strokeWidth={2}
-                  dot={false}
-                  name={key}
-                  connectNulls
-                />
-              ))}
-              {showMA && series.map((key, index) => (
-                <Line
-                  key={`${key}_MA`}
-                  type="monotone"
-                  dataKey={`${key}_MA`}
-                  stroke={COLORS[index % COLORS.length]}
-                  strokeWidth={3}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  name={`${key}_MA`}
-                  connectNulls
-                />
-              ))}
+              {series
+                .filter((key) => visibleSeries[key] !== false)
+                .map((key, index) => {
+                  const originalIndex = series.indexOf(key);
+                  return (
+                    <Line
+                      key={key}
+                      type="monotone"
+                      dataKey={key}
+                      stroke={COLORS[originalIndex % COLORS.length]}
+                      strokeWidth={2}
+                      dot={false}
+                      name={key}
+                      connectNulls
+                    />
+                  );
+                })}
+              {showMA && series
+                .filter((key) => visibleSeries[key] !== false)
+                .map((key, index) => {
+                  const originalIndex = series.indexOf(key);
+                  return (
+                    <Line
+                      key={`${key}_MA`}
+                      type="monotone"
+                      dataKey={`${key}_MA`}
+                      stroke={COLORS[originalIndex % COLORS.length]}
+                      strokeWidth={3}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      name={`${key}_MA`}
+                      connectNulls
+                    />
+                  );
+                })}
             </LineChart>
           </ResponsiveContainer>
         )}
