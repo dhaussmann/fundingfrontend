@@ -13,11 +13,9 @@ interface Top20ListProps {
   onTokenClick?: (symbol: string, exchange: string) => void;
 }
 
-type ViewMode = 'all' | 'perExchange' | 'selected';
-
 export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }: Top20ListProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('all');
+  const [viewMode, setViewMode] = useState<string>('all'); // 'all', 'custom', or exchange name
   const [selectedExchanges, setSelectedExchanges] = useState<Record<string, boolean>>({});
 
   // Extract unique exchanges from top20 data
@@ -42,21 +40,13 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
   const viewData = useMemo(() => {
     if (viewMode === 'all') {
       // All exchanges: show top 20 across all exchanges
-      return { type: 'single' as const, items: top20 };
-    } else if (viewMode === 'perExchange') {
-      // Per exchange: group by exchange and show top 20 for each
-      const grouped: Record<string, Top20Item[]> = {};
-      top20.forEach((item) => {
-        if (!grouped[item.exchange]) {
-          grouped[item.exchange] = [];
-        }
-        grouped[item.exchange].push(item);
-      });
-      return { type: 'grouped' as const, groups: grouped };
+      return top20;
+    } else if (viewMode === 'custom') {
+      // Custom: show top 20 for selected exchanges only
+      return top20.filter((item) => selectedExchanges[item.exchange] !== false);
     } else {
-      // Selected exchanges: show top 20 for selected exchanges only
-      const filtered = top20.filter((item) => selectedExchanges[item.exchange] !== false);
-      return { type: 'single' as const, items: filtered };
+      // Specific exchange: show top 20 for that exchange only
+      return top20.filter((item) => item.exchange === viewMode);
     }
   }, [viewMode, top20, selectedExchanges]);
 
@@ -139,11 +129,15 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
         {!isCollapsed && (
           <>
             <div className="space-y-3">
-              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v)}>
                 <TabsList>
-                  <TabsTrigger value="all">Alle Börsen</TabsTrigger>
-                  <TabsTrigger value="perExchange">Pro Börse</TabsTrigger>
-                  <TabsTrigger value="selected">Ausgewählt</TabsTrigger>
+                  <TabsTrigger value="all">Alle</TabsTrigger>
+                  {availableExchanges.map((exchange) => (
+                    <TabsTrigger key={exchange} value={exchange} className="capitalize">
+                      {exchange}
+                    </TabsTrigger>
+                  ))}
+                  <TabsTrigger value="custom">Custom</TabsTrigger>
                 </TabsList>
               </Tabs>
               <Tabs value={timeRange} onValueChange={(v) => onTimeRangeChange(v as TimeRange)}>
@@ -154,9 +148,9 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
                 </TabsList>
               </Tabs>
             </div>
-            {viewMode === 'selected' && availableExchanges.length > 0 && (
+            {viewMode === 'custom' && availableExchanges.length > 0 && (
               <div className="mt-4">
-                <div className="text-sm font-medium mb-2">Börsen:</div>
+                <div className="text-sm font-medium mb-2">Börsen auswählen:</div>
                 <div className="flex flex-wrap gap-3">
                   {availableExchanges.map((exchange) => (
                     <div key={exchange} className="flex items-center gap-2">
@@ -186,35 +180,14 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
               <p className="font-medium">Custom Ansicht nicht verfügbar</p>
               <p className="text-sm mt-2">Bitte wähle 24h, 7d oder 30d für die Top 20 Liste</p>
             </div>
-          ) : viewData.type === 'single' ? (
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {viewData.items.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  {top20.length === 0 ? 'Lade Daten...' : 'Keine Daten für ausgewählte Börsen'}
-                </div>
-              ) : (
-                viewData.items.map((item, index) => renderItem(item, index))
-              )}
-            </div>
           ) : (
-            <div className="space-y-6 max-h-[600px] overflow-y-auto">
-              {Object.keys(viewData.groups).length === 0 ? (
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              {viewData.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
-                  Lade Daten...
+                  {top20.length === 0 ? 'Lade Daten...' : 'Keine Daten verfügbar'}
                 </div>
               ) : (
-                Object.entries(viewData.groups)
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([exchange, items]) => (
-                    <div key={exchange}>
-                      <h3 className="text-sm font-semibold capitalize mb-3 px-2">
-                        {exchange} - Top {items.length}
-                      </h3>
-                      <div className="space-y-2">
-                        {items.map((item, index) => renderItem(item, index))}
-                      </div>
-                    </div>
-                  ))
+                viewData.map((item, index) => renderItem(item, index))
               )}
             </div>
           )}
