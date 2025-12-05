@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Top20Item, TimeRange } from '@/types';
 import { TrendingUp, TrendingDown, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -14,6 +15,37 @@ interface Top20ListProps {
 
 export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }: Top20ListProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [selectedExchanges, setSelectedExchanges] = useState<Record<string, boolean>>({});
+
+  // Extract unique exchanges from top20 data
+  const availableExchanges = useMemo(() => {
+    const exchanges = new Set<string>();
+    top20.forEach((item) => exchanges.add(item.exchange));
+    return Array.from(exchanges).sort();
+  }, [top20]);
+
+  // Initialize all exchanges as selected when they change
+  useEffect(() => {
+    setSelectedExchanges((prev) => {
+      const initial: Record<string, boolean> = {};
+      availableExchanges.forEach((exchange) => {
+        initial[exchange] = prev[exchange] !== undefined ? prev[exchange] : true;
+      });
+      return initial;
+    });
+  }, [availableExchanges]);
+
+  // Filter top20 by selected exchanges
+  const filteredTop20 = useMemo(() => {
+    return top20.filter((item) => selectedExchanges[item.exchange] !== false);
+  }, [top20, selectedExchanges]);
+
+  const toggleExchange = (exchange: string) => {
+    setSelectedExchanges((prev) => ({
+      ...prev,
+      [exchange]: !prev[exchange],
+    }));
+  };
 
   return (
     <Card>
@@ -33,13 +65,37 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
           </button>
         </div>
         {!isCollapsed && (
-          <Tabs value={timeRange} onValueChange={(v) => onTimeRangeChange(v as TimeRange)}>
-            <TabsList>
-              <TabsTrigger value="24h">24h</TabsTrigger>
-              <TabsTrigger value="7d">7d</TabsTrigger>
-              <TabsTrigger value="30d">30d</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <>
+            <Tabs value={timeRange} onValueChange={(v) => onTimeRangeChange(v as TimeRange)}>
+              <TabsList>
+                <TabsTrigger value="24h">24h</TabsTrigger>
+                <TabsTrigger value="7d">7d</TabsTrigger>
+                <TabsTrigger value="30d">30d</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {availableExchanges.length > 0 && (
+              <div className="mt-4">
+                <div className="text-sm font-medium mb-2">Börsen:</div>
+                <div className="flex flex-wrap gap-3">
+                  {availableExchanges.map((exchange) => (
+                    <div key={exchange} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`exchange-${exchange}`}
+                        checked={selectedExchanges[exchange] !== false}
+                        onCheckedChange={() => toggleExchange(exchange)}
+                      />
+                      <label
+                        htmlFor={`exchange-${exchange}`}
+                        className="text-sm capitalize cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {exchange}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardHeader>
       {!isCollapsed && (
@@ -50,12 +106,12 @@ export function Top20List({ top20, timeRange, onTimeRangeChange, onTokenClick }:
               <p className="font-medium">Custom Ansicht nicht verfügbar</p>
               <p className="text-sm mt-2">Bitte wähle 24h, 7d oder 30d für die Top 20 Liste</p>
             </div>
-          ) : top20.length === 0 ? (
+          ) : filteredTop20.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
-              Lade Daten...
+              {top20.length === 0 ? 'Lade Daten...' : 'Keine Daten für ausgewählte Börsen'}
             </div>
           ) : (
-            top20.map((item, index) => (
+            filteredTop20.map((item, index) => (
               <motion.div
                 key={`${item.symbol}-${item.exchange}`}
                 initial={{ opacity: 0, x: -20 }}
