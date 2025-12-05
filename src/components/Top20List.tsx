@@ -224,7 +224,7 @@ export function Top20List({ latestRates, timeRange, onTimeRangeChange, onTokenCl
                   <TabsTrigger value="custom">Custom</TabsTrigger>
                 </TabsList>
               </Tabs>
-              <Tabs value={timeRange} onValueChange={(v) => onTimeRangeChange(v as TimeRange)}>
+              <Tabs value={timeRange} onValueChange={(v) => onTimeRangeChange(v as TimeRange)} className="ml-auto">
                 <TabsList>
                   <TabsTrigger value="24h">24h</TabsTrigger>
                   <TabsTrigger value="7d">7d</TabsTrigger>
