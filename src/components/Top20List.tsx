@@ -212,7 +212,7 @@ export function Top20List({ latestRates, timeRange, onTimeRangeChange, onTokenCl
         </div>
         {!isCollapsed && (
           <>
-            <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-4">
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v)}>
                 <TabsList>
                   <TabsTrigger value="all">Alle</TabsTrigger>
