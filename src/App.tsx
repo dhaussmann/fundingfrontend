@@ -6,7 +6,6 @@ import { FilterControls } from '@/components/FilterControls';
 import {
   useFundingData,
   useExchangeStats,
-  useTop20,
   useHistoricalChart,
 } from '@/hooks/useFundingData';
 import { TimeRange } from '@/types';
@@ -24,7 +23,6 @@ function App() {
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
 
-  const top20 = useTop20(latestRates, top20TimeRange);
   const { data: chartData, loading: chartLoading } = useHistoricalChart(
     selectedSymbols,
     selectedExchanges,
@@ -126,7 +124,7 @@ function App() {
           {/* Right Column - Top 20 */}
           <div className="lg:col-span-2">
             <Top20List
-              top20={top20}
+              latestRates={latestRates}
               timeRange={top20TimeRange}
               onTimeRangeChange={setTop20TimeRange}
               onTokenClick={handleTokenClick}
