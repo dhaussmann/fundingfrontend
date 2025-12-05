@@ -13,6 +13,7 @@ const EXCHANGE_COLORS: Record<string, string> = {
   lighter: 'from-purple-500 to-pink-500',
   aster: 'from-orange-500 to-red-500',
   binance: 'from-yellow-500 to-orange-500',
+  paradex: 'from-green-500 to-emerald-500',
 };
 
 export function ExchangeOverview({ stats }: ExchangeOverviewProps) {
